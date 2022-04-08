@@ -469,7 +469,14 @@ struct razer_report razer_chroma_standard_matrix_effect_custom_frame(unsigned ch
  */
 struct razer_report razer_chroma_standard_matrix_set_custom_frame(unsigned char row_index, unsigned char start_col, unsigned char stop_col, unsigned char *rgb_data)
 {
+    const size_t start_arg_offset = 4;
     size_t row_length = (size_t) (((stop_col + 1) - start_col) * 3);
+
+    if (sizeof(struct razer_report) - start_arg_offset < row_length) {
+        printk(KERN_ALERT "razerchroma: RGB data too long\n");
+        row_length = sizeof(struct razer_report) - start_arg_offset;
+    }
+
     struct razer_report report = get_razer_report(0x03, 0x0B, 0x46); // In theory should be able to leave data size at max as we have start/stop
 
     // printk(KERN_ALERT "razerkbd: Row ID: %d, Start: %d, Stop: %d, row length: %d\n", row_index, start_col, stop_col, (unsigned char)row_length);
@@ -746,7 +753,14 @@ struct razer_report razer_chroma_extended_matrix_set_custom_frame(unsigned char 
 
 struct razer_report razer_chroma_extended_matrix_set_custom_frame2(unsigned char row_index, unsigned char start_col, unsigned char stop_col, unsigned char *rgb_data, size_t packetLength)
 {
+    const size_t start_arg_offset = 5;
     const size_t row_length = (size_t) (((stop_col + 1) - start_col) * 3);
+
+    if (sizeof(struct razer_report) - start_arg_offset < row_length) {
+        printk(KERN_ALERT "razerchroma: RGB data too long\n");
+        row_length = sizeof(struct razer_report) - start_arg_offset;
+    }
+
     // Some devices need a specific packet length, most devices are happy with 0x47
     // e.g. the Mamba Elite needs a "row_length + 5" packet length
     const size_t data_length = (packetLength != 0) ? packetLength : row_length + 5;
@@ -942,8 +956,15 @@ struct razer_report razer_chroma_misc_get_blade_brightness(void)
  */
 struct razer_report razer_chroma_misc_one_row_set_custom_frame(unsigned char start_col, unsigned char stop_col, unsigned char *rgb_data) // TODO recheck custom frame hex
 {
-    struct razer_report report = get_razer_report(0x03, 0x0C, 0x32);
+    const size_t start_arg_offset = 2;
     size_t row_length = (size_t) (((stop_col + 1) - start_col) * 3);
+
+    if (sizeof(struct razer_report) - start_arg_offset < row_length) {
+        printk(KERN_ALERT "razerchroma: RGB data too long\n");
+        row_length = sizeof(struct razer_report) - start_arg_offset;
+    }
+
+    struct razer_report report = get_razer_report(0x03, 0x0C, 0x32);
 
     report.arguments[0] = start_col;
     report.arguments[1] = stop_col;
@@ -1358,6 +1379,7 @@ struct razer_report razer_naga_trinity_effect_static(struct razer_rgb *rgb)
 
     return report;
 }
+
 
 
 
